@@ -20,9 +20,8 @@ The fwbackups logger
 """
 import datetime
 import logging
-import types
 
-from fwbackups.const import *
+from fwbackups.const import LOGLOC
 from fwbackups.i18n import _, encode
 
 L_DEBUG = logging.DEBUG
@@ -37,73 +36,79 @@ LEVELS = {'DEBUG': L_DEBUG,
           'ERROR': L_ERROR,
           'CRITICAL': L_CRITICAL}
 
+
 def getLogger():
-  """Retrieve the fwbackups logger"""
-  logging.setLoggerClass(fwLogger)
-  logger = logging.getLogger(LOGGERS['main'])
-  # reset to prevent excessive paramiko logging
-  logging.setLoggerClass(logging.Logger)
-  return logger
+    """Retrieve the fwbackups logger"""
+    logging.setLoggerClass(fwLogger)
+    logger = logging.getLogger(LOGGERS['main'])
+    # reset to prevent excessive paramiko logging
+    logging.setLoggerClass(logging.Logger)
+    return logger
+
 
 def shutdown():
-  """Shut down the logging system"""
-  logging.shutdown()
+    """Shut down the logging system"""
+    logging.shutdown()
+
 
 class fwLogger(logging.Logger):
-  """A subclass to logging.Logger"""
-  def __init__(self, name, level=logging.DEBUG):
-    """Setup the fwbackups logger, text mode"""
-    logging.Logger.__init__(self, name, level)
-    self.__printToo = False
-    self.__functions = []
-    self.__newmessages = False
-    try:
-      # need a handler
-      loghandler = logging.FileHandler(encode(LOGLOC), 'a')
-      # Create formatter & add formatter to handler
-      logformatter = logging.Formatter("%(message)s")
-      loghandler.setFormatter(logformatter)
-      # add handler to logger
-      self.addHandler(loghandler)
-    except Exception, error:
-      from fwbackups import fwbackupsError
-      raise fwbackupsError(_('Could not set up the logger: %s' % str(error)))
+    """A subclass to logging.Logger"""
 
-  def setPrintToo(self, printToo):
-    """If printToo is True, print messages to stdout as we log them"""
-    self.__printToo = printToo
+    def __init__(self, name, level=logging.DEBUG):
+        """Setup the fwbackups logger, text mode"""
+        logging.Logger.__init__(self, name, level)
+        self.__printToo = False
+        self.__functions = []
+        self.__newmessages = False
+        try:
+            # need a handler
+            loghandler = logging.FileHandler(encode(LOGLOC), 'a')
+            # Create formatter & add formatter to handler
+            logformatter = logging.Formatter("%(message)s")
+            loghandler.setFormatter(logformatter)
+            # add handler to logger
+            self.addHandler(loghandler)
+        except Exception as error:
+            from fwbackups import fwbackupsError
+            raise fwbackupsError(
+                _('Could not set up the logger: %s' % str(error)))
 
-  def getPrintToo(self):
-    """Retrieves the printToo property"""
-    return self.__printToo
+    def setPrintToo(self, printToo):
+        """If printToo is True, print messages to stdout as we log them"""
+        self.__printToo = printToo
 
-  def unconnect(self, function):
-    """Disconnects a function from logmsg. Returns true if disconnected, false
-        if that function was not connected."""
-    try:
-      self.__functions.remove(function)
-      return True
-    except ValueError:
-      return False
+    def getPrintToo(self):
+        """Retrieves the printToo property"""
+        return self.__printToo
 
-  def connect(self, function):
-    """Connects a function to logmsg. `function' must be passed as an instance,
-        not the function() call itself.
+    def unconnect(self, function):
+        """Disconnects a function from logmsg. Returns true if disconnected, false
+            if that function was not connected."""
+        try:
+            self.__functions.remove(function)
+            return True
+        except ValueError:
+            return False
 
-        Function will be given the severity and message as arguments:
-        def callback(severity, message)"""
-    self.__functions.append(function)
+    def connect(self, function):
+        """Connects a function to logmsg. `function' must be passed as an instance,
+            not the function() call itself.
 
-  def logmsg(self, severity, message):
-    """Logs a message. Severity is one of 'debug', 'info', 'warning', 'error'
-    or 'critical'."""
-    date = datetime.datetime.now().strftime('%b %d %H:%M:%S')
-    level = self.getEffectiveLevel()
-    if level <= LEVELS[severity]:
-      entry = u'%s :: %s : %s' % (date.decode('utf-8'), _(severity), message)
-      self.log(LEVELS[severity], entry.encode('utf-8'))
-      if self.__printToo:
-        print entry.encode('utf-8')
-      # pull in & execute the appropriate function
-      for i in self.__functions:
-        i(severity, entry)
+            Function will be given the severity and message as arguments:
+            def callback(severity, message)"""
+        self.__functions.append(function)
+
+    def logmsg(self, severity, message):
+        """Logs a message. Severity is one of 'debug', 'info', 'warning', 'error'
+        or 'critical'."""
+        date = datetime.datetime.now().strftime('%b %d %H:%M:%S')
+        level = self.getEffectiveLevel()
+        if level <= LEVELS[severity]:
+            entry = u'%s :: %s : %s' % (
+                date.decode('utf-8'), _(severity), message)
+            self.log(LEVELS[severity], entry.encode('utf-8'))
+            if self.__printToo:
+                print(entry.encode('utf-8'))
+            # pull in & execute the appropriate function
+            for i in self.__functions:
+                i(severity, entry)

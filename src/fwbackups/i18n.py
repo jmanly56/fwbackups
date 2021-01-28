@@ -26,7 +26,7 @@ http://boodebr.org/main/python/all-about-python-and-unicode
 import gettext
 import locale
 import sys
-import unicodedata
+# import unicodedata
 
 # Set the locale according to user preference
 locale.setlocale(locale.LC_ALL, '')
@@ -39,51 +39,55 @@ encoding = sys.getfilesystemencoding()
 # just wild guess UTF-8 and hope it's all OK. Same goes for if autodetection of
 # the filesystem's encoding fails.
 if None in [encoding, locale.getlocale()[1]]:
-  encoding = 'utf-8'
+    encoding = 'utf-8'
+
 
 def encode(item):
-  """Takes a Unicode string and encodes the code points into a byte string using
-  the determined system encoding (see above). If item is a list, the operation
-  is performed to each item in the list. If the item is not a string, it is
-  converted to one before applying the encoding."""
-  if type(item) == list:
-    return [encode(i) for i in item]
-  elif type(item) not in [str, unicode]:
-    item = str(item)
-  return item.encode(encoding)
+    """Takes a Unicode string and encodes the code points into a byte string using
+    the determined system encoding (see above). If item is a list, the operation
+    is performed to each item in the list. If the item is not a string, it is
+    converted to one before applying the encoding."""
+    # if type(item) == list:
+    #    return [encode(i) for i in item]
+    # elif isinstance(item, str):
+    #    item = str(item)
+    return str(item)
+
 
 def decode(item, filename=False):
-  """Takes a byte string and decodes it into a Unicode string object using the
-  determined system encoding (see above). If item is a list, the operation is
-  performed to each item in the list. If the item is not a string, it is
-  converted to one before applying the encoding. If filename is True, then item
-  will be normalized to NFC form first using the normalize() function below."""
-  if type(item) == unicode:
+    """Takes a byte string and decodes it into a Unicode string object using the
+    determined system encoding (see above). If item is a list, the operation is
+    performed to each item in the list. If the item is not a string, it is
+    converted to one before applying the encoding. If filename is True, then item
+    will be normalized to NFC form first using the normalize() function below."""
+    # if isinstance(item, str):
+    #    return item
+    # if type(item) == list:
+    #    return [decode(i) for i in item]
+    # else:
+    #    item = str(item)
+    # item = item.decode(encoding)
+    # if filename:
+    #    item = normalize(item)
     return item
-  if type(item) == list:
-    return [decode(i) for i in item]
-  elif type(item) not in [str, unicode]:
-    item = str(item)
-  item = item.decode(encoding)
-  if filename:
-    item = normalize(item)
-  return item
+
 
 def normalize(item):
-  """This is primarily for OS X, where HFS+ stores filenames as decomposed UTF-8
-  strings (there are many ways to write the same character in Unicode). This
-  function will normalize Unicode string "item" so that it may be compared
-  internally with other Unicode strings."""
-  if type(item) != unicode:
-    item = decode(item)
-  normalized = unicodedata.normalize('NFC', item)
-  return normalized
+    """This is primarily for OS X, where HFS+ stores filenames as decomposed UTF-8
+    strings (there are many ways to write the same character in Unicode). This
+    function will normalize Unicode string "item" so that it may be compared
+    internally with other Unicode strings."""
+    # if isinstance(item, str):
+    #    item = decode(item)
+    # normalized = unicodedata.normalize('NFC', item)
+    # return normalized
+    return item
 
-try: 
-  _ = gettext.translation('fwbackups').ugettext
-except:
-  # Oops! Better return the string as it is so we don't break things
-  def _(str):
-    """Wrapper - returns the same string"""
-    return str
 
+try:
+    _ = gettext.translation('fwbackups').ugettext
+except Exception:
+    # Oops! Better return the string as it is so we don't break things
+    def _(str):
+        """Wrapper - returns the same string"""
+        return str

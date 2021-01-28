@@ -1,5 +1,8 @@
 syntax: glob
 
+build/
+*.bak
+*~
 # rendered docs
 docs/html
 docs/pdf
